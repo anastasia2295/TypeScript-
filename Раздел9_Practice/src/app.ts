@@ -1,81 +1,4 @@
-State Management
-type Listener<T> = (items: T[]) => void;
-
-class State<T> {
-  protected listeners: Listener<T>[] = [];
-
-  addListener(listenerFn: Listener<T>) {
-    this.listeners.push(listenerFn);
-  }
-}
-
-class ProjectState extends State<Project> {
-  private projects: Project[] = [];
-  private static instance: ProjectState;
-
-  private constructor() {
-    super();
-  }
-
-  static getInstance() {
-    if (this.instance) {
-      return this.instance;
-    }
-    this.instance = new ProjectState();
-    return this.instance;
-  }
-
-  addProject(title: string, description: string, numOfPeople: number) {
-    const newProject = new Project(
-      Math.random().toString(),
-      title,
-      description,
-      numOfPeople,
-      ProjectStatus.Active
-    );
-    this.projects.push(newProject);
-    for (const listenerFn of this.listeners) {
-      listenerFn(this.projects.slice());
-    }
-  }
-}
-
-const projectState = ProjectState.getInstance();
-
-// Validation
-interface Validatable {
-  value: string | number;
-  required?: boolean;
-  minLength?: number;
-  maxLength?: number;
-  min?: number;
-  max?: number;
-}
-
-function validate(validatableInput: Validatable) {
-  let isValid = true;
-  if (validatableInput.required) {
-    isValid = isValid && validatableInput.value.toString().trim().length !== 0;
-  }
-  if (
-    validatableInput.minLength != null &&
-    typeof validatableInput.value === 'string'
-  ) {
-    isValid =
-      isValid && validatableInput.value.length >= validatableInput.minLength;
-  }
-  if (
-    validatableInput.maxLength != null &&
-    typeof validatableInput.value === 'string'
-  ) {
-    isValid =
-      isValid && validatableInput.value.length <= validatableInput.maxLength;
-  }
-  if (
-    validatableInput.min != null &&
-    typeof validatableInput.value === 'number'
-  ) {
-    isValid = isValid && validatableInput.value >= validatableInput.min;
+validatableInput.value >= validatableInput.min;
   }
   if (
     validatableInput.max != null &&
@@ -143,6 +66,14 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
 class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> {
   private project: Project;
 
+  get persons() {
+    if (this.project.people === 1) {
+      return '1 person';
+    } else {
+      return `${this.project.people} persons`;
+    }
+  }
+
   constructor(hostId: string, project: Project) {
     super('single-project', hostId, false, project.id);
     this.project = project;
@@ -155,9 +86,7 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> {
 
   renderContent() {
     this.element.querySelector('h2')!.textContent = this.project.title;
-    this.element.querySelector(
-      'h3'
-    )!.textContent = this.project.people.toString();
+    this.element.querySelector('h3')!.textContent = this.persons + ' assigned';
     this.element.querySelector('p')!.textContent = this.project.description;
   }
 }
